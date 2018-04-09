@@ -11,7 +11,7 @@ namespace demo4developers
 {
     public static class Function1
     {
-        [FunctionName("Function1")]
+        [FunctionName("ImageResize")]
         public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "saveMessage")]HttpRequest req,
             TraceWriter log)
@@ -19,10 +19,15 @@ namespace demo4developers
             log.Info("C# HTTP trigger function processed a request.");
 
             string name = req.Query["name"];
+            string file = req.Query["file"];
+            int width = int.Parse(req.Query["width"]);
+            int height = int.Parse(req.Query["height"]);
 
             string requestBody = new StreamReader(req.Body).ReadToEnd();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             name = name ?? data?.name;
+
+            log.Info($"{name}-{file}");
 
             return name != null
                 ? (ActionResult)new OkObjectResult($"Hello, {name}")
