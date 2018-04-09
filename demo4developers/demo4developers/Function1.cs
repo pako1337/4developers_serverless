@@ -6,6 +6,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
+using Microsoft.WindowsAzure.Storage.Table;
+using System;
 
 namespace demo4developers
 {
@@ -14,6 +16,7 @@ namespace demo4developers
         [FunctionName("ImageResize")]
         public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "saveMessage")]HttpRequest req,
+            [Table("Orders", Connection = "StorageConnection")] ICollector<PhotoOrder> ordersTable,
             TraceWriter log)
         {
             log.Info("C# HTTP trigger function processed a request.");
@@ -23,6 +26,9 @@ namespace demo4developers
             log.Info(requestBody);
 
             var data = JsonConvert.DeserializeObject<PhotoOrder>(requestBody);
+            data.PartitionKey = DateTime.UtcNow.DayOfYear.ToString();
+            data.RowKey = data.FileName;
+            ordersTable.Add(data);
 
             return data != null
                 ? (ActionResult)new OkObjectResult($"Hello, {data.Email}")
@@ -30,7 +36,7 @@ namespace demo4developers
         }
     }
 
-    public class PhotoOrder
+    public class PhotoOrder : TableEntity
     {
         public string Email { get; set; }
         public string FileName { get; set; }
