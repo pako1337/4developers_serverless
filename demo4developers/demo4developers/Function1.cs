@@ -18,20 +18,23 @@ namespace demo4developers
         {
             log.Info("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
-            string file = req.Query["file"];
-            int width = int.Parse(req.Query["width"]);
-            int height = int.Parse(req.Query["height"]);
-
             string requestBody = new StreamReader(req.Body).ReadToEnd();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
 
-            log.Info($"{name}-{file}");
+            log.Info(requestBody);
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
+            var data = JsonConvert.DeserializeObject<PhotoOrder>(requestBody);
+
+            return data != null
+                ? (ActionResult)new OkObjectResult($"Hello, {data.Email}")
                 : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
         }
+    }
+
+    public class PhotoOrder
+    {
+        public string Email { get; set; }
+        public string FileName { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 }
